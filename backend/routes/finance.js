@@ -6,13 +6,18 @@ const { authenticateToken, authorize, checkClubAccess } = require('../middleware
 
 // Helper to recalculate club budgetSpent
 const updateClubBudgetSpent = async (clubId) => {
-  const result = await Transaction.aggregate([
-    { $match: { clubId: new (require('mongoose').Types.ObjectId)(clubId), type: 'out' } },
-    { $group: { _id: null, totalSpent: { $sum: '$amount' } } }
-  ]);
-  const spent = result.length > 0 ? result[0].totalSpent : 0;
-  await Club.findByIdAndUpdate(clubId, { budgetSpent: spent });
-  return spent;
+  try {
+    const result = await Transaction.aggregate([
+      { $match: { clubId: new (require('mongoose').Types.ObjectId)(clubId), type: 'out' } },
+      { $group: { _id: null, totalSpent: { $sum: '$amount' } } }
+    ]);
+    const spent = result.length > 0 ? result[0].totalSpent : 0;
+    await Club.findByIdAndUpdate(clubId, { budgetSpent: spent });
+    return spent;
+  } catch (err) {
+    console.error('Error updating club budget spent:', err);
+    return 0;
+  }
 };
 
 // GET /clubs/:clubId/finance/summary — available to super_admin, club_admin, member
@@ -25,17 +30,22 @@ router.get('/summary', authenticateToken, checkClubAccess, async (req, res) => {
     }
 
     // Category breakdown for spend ('out' transactions)
-    const categoryBreakdown = await Transaction.aggregate([
-      { $match: { clubId: new (require('mongoose').Types.ObjectId)(clubId), type: 'out' } },
-      { $group: { _id: '$category', total: { $sum: '$amount' } } },
-      { $sort: { total: -1 } }
-    ]);
+    let categoryBreakdown = [];
+    try {
+      categoryBreakdown = await Transaction.aggregate([
+        { $match: { clubId: new (require('mongoose').Types.ObjectId)(clubId), type: 'out' } },
+        { $group: { _id: '$category', total: { $sum: '$amount' } } },
+        { $sort: { total: -1 } }
+      ]);
+    } catch (e) {
+      categoryBreakdown = [];
+    }
 
     const categories = ['Events', 'Equipment', 'Sponsorship', 'Dues', 'Venue', 'Supplies', 'Other'];
     const breakdownMap = {};
     categories.forEach(c => breakdownMap[c] = 0);
     categoryBreakdown.forEach(item => {
-      breakdownMap[item._id] = item.total;
+      if (item._id) breakdownMap[item._id] = item.total;
     });
 
     const categoryData = Object.keys(breakdownMap).map(cat => ({
@@ -61,8 +71,8 @@ router.get('/summary', authenticateToken, checkClubAccess, async (req, res) => {
   }
 });
 
-// GET /clubs/:clubId/transactions — super_admin and club_admin only (members cannot view detailed list)
-router.get('/transactions', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), async (req, res) => {
+// GET /clubs/:clubId/transactions OR GET /clubs/:clubId/finance/transactions
+const getTransactionsHandler = async (req, res) => {
   try {
     const { clubId } = req.params;
     const page = parseInt(req.query.page) || 1;
@@ -82,17 +92,20 @@ router.get('/transactions', authenticateToken, checkClubAccess, authorize(['supe
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit) || 1
       }
     });
   } catch (err) {
     console.error('Error fetching transactions:', err);
     res.status(500).json({ message: 'Error fetching transactions.' });
   }
-});
+};
 
-// POST /clubs/:clubId/transactions — club_admin only
-router.post('/transactions', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), async (req, res) => {
+router.get('/transactions', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), getTransactionsHandler);
+router.get('/', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), getTransactionsHandler);
+
+// POST /clubs/:clubId/transactions
+const createTransactionHandler = async (req, res) => {
   try {
     const { clubId } = req.params;
     const { description, category, type, amount, date } = req.body;
@@ -108,7 +121,7 @@ router.post('/transactions', authenticateToken, checkClubAccess, authorize(['sup
       type,
       amount: Number(amount),
       date: date ? new Date(date) : new Date(),
-      addedBy: req.user.id
+      addedBy: req.user.id || req.user._id
     });
 
     await transaction.save();
@@ -119,10 +132,13 @@ router.post('/transactions', authenticateToken, checkClubAccess, authorize(['sup
     console.error('Error adding transaction:', err);
     res.status(500).json({ message: 'Error adding transaction.' });
   }
-});
+};
 
-// DELETE /clubs/:clubId/transactions/:id — club_admin only
-router.delete('/transactions/:id', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), async (req, res) => {
+router.post('/transactions', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), createTransactionHandler);
+router.post('/', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), createTransactionHandler);
+
+// DELETE /clubs/:clubId/transactions/:id
+const deleteTransactionHandler = async (req, res) => {
   try {
     const { clubId, id } = req.params;
     const transaction = await Transaction.findOneAndDelete({ _id: id, clubId });
@@ -137,6 +153,9 @@ router.delete('/transactions/:id', authenticateToken, checkClubAccess, authorize
     console.error('Error deleting transaction:', err);
     res.status(500).json({ message: 'Error deleting transaction.' });
   }
-});
+};
+
+router.delete('/transactions/:id', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), deleteTransactionHandler);
+router.delete('/:id', authenticateToken, checkClubAccess, authorize(['super_admin', 'club_admin']), deleteTransactionHandler);
 
 module.exports = router;

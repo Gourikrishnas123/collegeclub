@@ -34,12 +34,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       return callback(null, true);
     }
-    callback(null, true); // Fallback allow for production flexibility
+    callback(null, true);
   },
   credentials: true
 }));
@@ -70,7 +69,7 @@ app.use('/api/clubs', clubRoutes);
 
 // Club nested sub-resource routes
 app.use('/api/clubs/:clubId/finance', financeRoutes);
-app.use('/api/clubs/:clubId', financeRoutes); // for /transactions endpoints
+app.use('/api/clubs/:clubId/transactions', financeRoutes);
 app.use('/api/clubs/:clubId/gallery', galleryRoutes);
 app.use('/api/clubs/:clubId/notices', noticeRoutes);
 app.use('/api/clubs/:clubId/members', memberRoutes);
