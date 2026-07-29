@@ -5,7 +5,7 @@ export const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return '/api'; // Use same-origin Vercel rewrite proxy in production
+    return 'https://collegeclub-oo4q.onrender.com/api';
   }
   return 'http://localhost:3001/api';
 };
@@ -34,7 +34,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: auto-redirect on 401
+// Response interceptor: auto-redirect on 401 only if not already logging in
 api.interceptors.response.use(
   (response) => response,
   (error) => {

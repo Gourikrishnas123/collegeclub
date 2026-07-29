@@ -15,8 +15,8 @@ import { getMembersApi } from '../api/members';
 import { getGalleryApi } from '../api/gallery';
 
 const Dashboard = () => {
-  const { clubId } = useParams();
-  const { isSuperAdmin, isClubAdmin } = useAuth();
+  const { clubId: paramClubId } = useParams();
+  const { isSuperAdmin, isClubAdmin, ownClubId } = useAuth();
   const { currentClub, selectClub } = useClub();
 
   const [financeSummary, setFinanceSummary] = useState(null);
@@ -27,12 +27,16 @@ const Dashboard = () => {
   const [urgentNotice, setUrgentNotice] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const activeTargetId = (paramClubId && paramClubId !== 'null' && paramClubId !== 'undefined') ? paramClubId : ownClubId;
+
   useEffect(() => {
-    if (clubId && clubId !== 'null' && clubId !== 'undefined') {
-      selectClub(clubId);
-      loadDashboardData(clubId);
+    if (activeTargetId) {
+      selectClub(activeTargetId);
+      loadDashboardData(activeTargetId);
+    } else {
+      setLoading(false);
     }
-  }, [clubId]);
+  }, [paramClubId, ownClubId]);
 
   const loadDashboardData = async (targetClubId) => {
     try {
