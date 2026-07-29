@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ClubProvider, useClub } from './context/ClubContext';
+import { ClubProvider } from './context/ClubContext';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -28,7 +28,7 @@ const ProtectedRoute = ({ children, requireSuperAdmin = false }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '14px'
+        fontSize: '13px'
       }}>
         LOADING SYSTEM DATA...
       </div>
@@ -40,11 +40,11 @@ const ProtectedRoute = ({ children, requireSuperAdmin = false }) => {
   }
 
   if (requireSuperAdmin && !isSuperAdmin) {
-    return <Navigate to={`/club/${ownClubId}/dashboard`} replace />;
+    return <Navigate to={ownClubId ? `/club/${ownClubId}/dashboard` : '/login'} replace />;
   }
 
-  // Check club access: if non-super_admin tries to access another club's URL, redirect to own club
-  if (!isSuperAdmin && clubId && clubId !== ownClubId) {
+  // Check club access: if non-super_admin tries to access another club's URL or invalid ID, redirect to own club
+  if (!isSuperAdmin && ownClubId && clubId && clubId.toString() !== ownClubId.toString()) {
     return <Navigate to={`/club/${ownClubId}/dashboard`} replace />;
   }
 
@@ -64,7 +64,8 @@ const RootRedirect = () => {
         fontFamily: 'var(--font-mono)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        fontSize: '13px'
       }}>
         INITIALIZING SYSTEM...
       </div>
@@ -79,7 +80,11 @@ const RootRedirect = () => {
     return <Navigate to="/admin" replace />;
   }
 
-  return <Navigate to={`/club/${ownClubId}/dashboard`} replace />;
+  if (ownClubId) {
+    return <Navigate to={`/club/${ownClubId}/dashboard`} replace />;
+  }
+
+  return <Navigate to="/login" replace />;
 };
 
 function App() {
