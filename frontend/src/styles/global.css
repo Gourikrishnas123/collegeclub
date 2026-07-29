@@ -36,22 +36,22 @@ button, input, select, textarea {
 
 /* Minimal Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: #262626;
 }
 
 /* Modal overlay & container */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.90);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,7 +63,7 @@ button, input, select, textarea {
   background: var(--panel);
   border: 1px solid var(--line-strong);
   padding: 28px;
-  max-width: 520px;
+  max-width: 500px;
   width: 100%;
 }
 
@@ -93,5 +93,5 @@ button, input, select, textarea {
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
-  border-color: var(--fg);
+  border-color: var(--line-strong);
 }

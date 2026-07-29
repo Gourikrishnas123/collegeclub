@@ -27,8 +27,8 @@ const Button = ({
 
   const sizes = {
     sm: { padding: '5px 10px', fontSize: '10px' },
-    md: { padding: '9px 16px', fontSize: '11px' },
-    lg: { padding: '12px 22px', fontSize: '12px' }
+    md: { padding: '8px 15px', fontSize: '11px' },
+    lg: { padding: '11px 20px', fontSize: '12px' }
   };
 
   let variantStyle = {};
@@ -75,7 +75,7 @@ const Button = ({
             e.currentTarget.style.backgroundColor = 'var(--danger)';
             e.currentTarget.style.color = 'var(--bg)';
           } else {
-            e.currentTarget.style.borderColor = 'var(--fg)';
+            e.currentTarget.style.borderColor = 'var(--line-strong)';
           }
         }
       }}
