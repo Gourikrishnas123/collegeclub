@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/common/Button';
 import Tag from '../components/common/Tag';
-import { ShieldAlert, UserCheck, Users, Lock, Mail, ArrowRight } from 'lucide-react';
+import { ShieldAlert, UserCheck, Users, Lock, Mail, Building2, ArrowRight } from 'lucide-react';
 
 const Login = () => {
   const [activeRole, setActiveRole] = useState('super_admin'); // 'super_admin' | 'club_admin' | 'member'
+  const [selectedClub, setSelectedClub] = useState('CS'); // 'CS' | 'RO' | 'ME' | 'DS'
   const [email, setEmail] = useState('admin@college.edu');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
@@ -14,28 +15,32 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const clubsList = [
+    { mark: 'CS', name: 'Computer Science Society', adminEmail: 'cs_admin@college.edu', memberEmail: 'cs_member@college.edu' },
+    { mark: 'RO', name: 'Robotics & Automation Club', adminEmail: 'ro_admin@college.edu', memberEmail: 'ro_member@college.edu' },
+    { mark: 'ME', name: 'Mechanical Innovators Guild', adminEmail: 'me_admin@college.edu', memberEmail: 'me_member@college.edu' },
+    { mark: 'DS', name: 'Design & Creative Media Club', adminEmail: 'ds_admin@college.edu', memberEmail: 'ds_admin@college.edu' }
+  ];
+
   const rolePresets = {
     super_admin: {
       title: 'SUPER ADMIN',
-      subtitle: 'MANAGES ALL CLUBS ACROSS CAMPUS',
-      email: 'admin@college.edu',
-      description: 'Full system control. View all-clubs overview, create or deactivate clubs, and drill down into any dashboard.',
+      subtitle: 'MANAGES ALL CLUBS',
+      description: 'Full administrative authority over all college clubs, budget allocations, and system settings.',
       badgeVariant: 'filled-urgent',
       icon: ShieldAlert
     },
     club_admin: {
       title: 'CLUB ADMIN',
-      subtitle: 'MANAGES ASSIGNED CLUB',
-      email: 'cs_admin@college.edu',
-      description: 'Full CRUD on your club\'s financial transactions, noticeboard announcements, gallery albums, and members.',
+      subtitle: 'MANAGES SINGLE CLUB',
+      description: 'Full management over assigned club\'s budget, notices, gallery events, and members.',
       badgeVariant: 'accent',
       icon: UserCheck
     },
     member: {
       title: 'STUDENT MEMBER',
-      subtitle: 'READ-ONLY CLUB ACCESS',
-      email: 'cs_member@college.edu',
-      description: 'Student access. View club announcements, finance summaries, member directory, and event photo gallery.',
+      subtitle: 'READ-ONLY VIEW',
+      description: 'Student access to view announcements, event gallery, and club details.',
       badgeVariant: 'default',
       icon: Users
     }
@@ -43,9 +48,29 @@ const Login = () => {
 
   const handleRoleSelect = (roleKey) => {
     setActiveRole(roleKey);
-    setEmail(rolePresets[roleKey].email);
-    setPassword('password123');
     setError('');
+    if (roleKey === 'super_admin') {
+      setEmail('admin@college.edu');
+    } else if (roleKey === 'club_admin') {
+      const match = clubsList.find(c => c.mark === selectedClub) || clubsList[0];
+      setEmail(match.adminEmail);
+    } else {
+      const match = clubsList.find(c => c.mark === selectedClub) || clubsList[0];
+      setEmail(match.memberEmail);
+    }
+    setPassword('password123');
+  };
+
+  const handleClubChange = (markCode) => {
+    setSelectedClub(markCode);
+    const match = clubsList.find(c => c.mark === markCode);
+    if (match) {
+      if (activeRole === 'club_admin') {
+        setEmail(match.adminEmail);
+      } else if (activeRole === 'member') {
+        setEmail(match.memberEmail);
+      }
+    }
   };
 
   const handleLogin = async (e) => {
@@ -86,86 +111,76 @@ const Login = () => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '520px',
+        maxWidth: '480px',
         border: '2px solid var(--line-strong)',
         backgroundColor: 'var(--panel)',
         padding: '36px'
       }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        {/* Clean Header */}
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '10px',
-            marginBottom: '6px'
+            gap: '8px',
+            marginBottom: '4px'
           }}>
-            <div style={{ width: '14px', height: '14px', backgroundColor: 'var(--accent)' }} />
-            <h1 style={{ fontSize: '22px', letterSpacing: '-0.02em' }}>CLUB CORE</h1>
+            <div style={{ width: '12px', height: '12px', backgroundColor: 'var(--accent)' }} />
+            <h1 style={{ fontSize: '20px', letterSpacing: '-0.02em' }}>CLUB CORE</h1>
           </div>
           <p style={{ fontSize: '11px', color: 'var(--fg-dim)', textTransform: 'uppercase' }}>
-            Multi-Club OS Login Portal
+            Multi-Club OS Portal
           </p>
         </div>
 
-        {/* 3 Dedicated Role Selection Buttons */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--fg-dim)', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '700' }}>
-            SELECT LOGIN MODE:
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-            {Object.keys(rolePresets).map((rKey) => {
-              const r = rolePresets[rKey];
-              const isSelected = activeRole === rKey;
-              const Icon = r.icon;
-              return (
-                <button
-                  key={rKey}
-                  type="button"
-                  onClick={() => handleRoleSelect(rKey)}
-                  style={{
-                    padding: '12px 6px',
-                    border: isSelected ? '2px solid var(--accent)' : '1px solid var(--line)',
-                    backgroundColor: isSelected ? 'rgba(212, 255, 61, 0.08)' : 'var(--bg)',
-                    color: isSelected ? 'var(--accent)' : 'var(--fg-dim)',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '10px',
-                    fontWeight: '700',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Icon size={16} />
-                  <span>{r.title}</span>
-                </button>
-              );
-            })}
-          </div>
+        {/* 3 Minimal Role Selector Buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '24px' }}>
+          {Object.keys(rolePresets).map((rKey) => {
+            const r = rolePresets[rKey];
+            const isSelected = activeRole === rKey;
+            const Icon = r.icon;
+            return (
+              <button
+                key={rKey}
+                type="button"
+                onClick={() => handleRoleSelect(rKey)}
+                style={{
+                  padding: '10px 4px',
+                  border: isSelected ? '2px solid var(--accent)' : '1px solid var(--line)',
+                  backgroundColor: isSelected ? 'rgba(212, 255, 61, 0.08)' : 'var(--bg)',
+                  color: isSelected ? 'var(--accent)' : 'var(--fg-dim)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Icon size={14} />
+                <span>{r.title}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Role Info Box */}
+        {/* Role Badge & Scope Description */}
         <div style={{
-          padding: '14px 16px',
+          padding: '12px 14px',
           border: '1px solid var(--line)',
           backgroundColor: 'var(--bg)',
-          marginBottom: '24px',
+          marginBottom: '20px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '6px'
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--fg)' }}>
-              {currentPreset.title} — MODE
-            </span>
-            <Tag variant={currentPreset.badgeVariant}>{activeRole}</Tag>
-          </div>
-          <p style={{ fontSize: '11px', color: 'var(--fg-dim)', lineHeight: '1.4' }}>
-            {currentPreset.description}
-          </p>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--fg)' }}>
+            {currentPreset.subtitle}
+          </span>
+          <Tag variant={currentPreset.badgeVariant}>{activeRole}</Tag>
         </div>
 
         {error && (
@@ -181,8 +196,30 @@ const Login = () => {
           </div>
         )}
 
-        {/* Credentials Form */}
+        {/* Form */}
         <form onSubmit={handleLogin}>
+          {/* Club Name Dropdown (For Club Admin & Member Identification) */}
+          {activeRole !== 'super_admin' && (
+            <div className="form-group">
+              <label className="form-label">Select Club Name (for identification)</label>
+              <div style={{ position: 'relative' }}>
+                <select
+                  className="form-select"
+                  style={{ width: '100%', paddingLeft: '36px', appearance: 'auto', fontWeight: '600' }}
+                  value={selectedClub}
+                  onChange={(e) => handleClubChange(e.target.value)}
+                >
+                  {clubsList.map(c => (
+                    <option key={c.mark} value={c.mark}>
+                      [{c.mark}] {c.name}
+                    </option>
+                  ))}
+                </select>
+                <Building2 size={14} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--accent)' }} />
+              </div>
+            </div>
+          )}
+
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div style={{ position: 'relative' }}>
@@ -219,41 +256,6 @@ const Login = () => {
             {loading ? 'AUTHENTICATING...' : `LOG IN AS ${currentPreset.title}`} <ArrowRight size={14} />
           </Button>
         </form>
-
-        {/* Quick Club Admin Presets if Club Admin selected */}
-        {activeRole === 'club_admin' && (
-          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--line)' }}>
-            <div style={{ fontSize: '10px', color: 'var(--fg-dim)', textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
-              SWITCH DEMO CLUB ADMIN ACCOUNT:
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
-              <button
-                type="button"
-                className="form-input"
-                style={{ fontSize: '9px', padding: '6px', textAlign: 'center', cursor: 'pointer' }}
-                onClick={() => setEmail('cs_admin@college.edu')}
-              >
-                [CS] COMPUTER SCIENCE
-              </button>
-              <button
-                type="button"
-                className="form-input"
-                style={{ fontSize: '9px', padding: '6px', textAlign: 'center', cursor: 'pointer' }}
-                onClick={() => setEmail('ro_admin@college.edu')}
-              >
-                [RO] ROBOTICS
-              </button>
-              <button
-                type="button"
-                className="form-input"
-                style={{ fontSize: '9px', padding: '6px', textAlign: 'center', cursor: 'pointer' }}
-                onClick={() => setEmail('me_admin@college.edu')}
-              >
-                [ME] MECHANICAL
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
