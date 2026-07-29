@@ -1,0 +1,16 @@
+:root {
+  --bg: #0A0A0A;
+  --panel: #111111;
+  --line: #2A2A28;
+  --line-strong: #F2F1EA;
+  --fg: #F2F1EA;
+  --fg-dim: #8A8A82;
+  --accent: #D4FF3D;
+  --danger: #FF5C4D;
+
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --sidebar-width: 230px;
+  --topbar-height: 60px;
+}

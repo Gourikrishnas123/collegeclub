@@ -1,26 +1,70 @@
 const jwt = require('jsonwebtoken');
-const { AppError } = require('./errorHandler');
 
-const protect = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+// Authenticate token from cookie or Authorization header
+const authenticateToken = (req, res, next) => {
+  let token = req.cookies ? req.cookies.token : null;
+  
+  if (!token && req.headers.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
 
   if (!token) {
-    return next(new AppError('No token provided', 401));
+    return res.status(401).json({ message: 'Authentication required. Please log in.' });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (error) {
-    next(new AppError('Invalid token', 401));
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d',
-  });
+// Check if user has required role(s)
+const authorize = (allowedRoles = []) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required.' });
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Forbidden: Insufficient privileges.' });
+    }
+
+    next();
+  };
 };
 
-module.exports = { protect, generateToken };
+// Verify user has access to target clubId (super_admin can access any, club_admin/member only their own)
+const checkClubAccess = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
+  // Super admin can access any club
+  if (req.user.role === 'super_admin') {
+    return next();
+  }
+
+  const targetClubId = req.params.clubId || req.body.clubId || req.query.clubId;
+
+  if (!targetClubId) {
+    return res.status(400).json({ message: 'Club ID parameter missing.' });
+  }
+
+  if (!req.user.clubId || req.user.clubId.toString() !== targetClubId.toString()) {
+    return res.status(403).json({ message: 'Access denied: You can only access your own club data.' });
+  }
+
+  next();
+};
+
+module.exports = {
+  authenticateToken,
+  authorize,
+  checkClubAccess
+};

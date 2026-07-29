@@ -1,59 +1,77 @@
 const dns = require('dns');
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {
+  console.log('Could not set custom DNS servers');
+}
 
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-require("dotenv").config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+require('dotenv').config();
 
-const clubRoutes = require("./routes/clubs");
-const memberRoutes = require("./routes/members");
-const eventRoutes = require("./routes/events");
+const authRoutes = require('./routes/auth');
+const clubRoutes = require('./routes/clubs');
+const financeRoutes = require('./routes/finance');
+const galleryRoutes = require('./routes/gallery');
+const noticeRoutes = require('./routes/notices');
+const memberRoutes = require('./routes/members');
 
 const app = express();
 
 // Middleware
 app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Test route
-app.get("/", (req, res) => {
-    res.send("Backend server is running 🚀");
+// Static folder for uploaded gallery images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Health check / API status
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'Online',
+    dbConnected: mongoose.connection.readyState === 1,
+    timestamp: new Date().toISOString()
+  });
 });
 
-// API Status Route
-app.get("/api/status", (req, res) => {
-    res.json({
-        status: "Online",
-        dbConnected: mongoose.connection.readyState === 1,
-        timestamp: new Date().toISOString()
-    });
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/clubs', clubRoutes);
+
+// Club nested sub-resource routes
+app.use('/api/clubs/:clubId/finance', financeRoutes);
+app.use('/api/clubs/:clubId', financeRoutes); // for /transactions endpoints
+app.use('/api/clubs/:clubId/gallery', galleryRoutes);
+app.use('/api/clubs/:clubId/notices', noticeRoutes);
+app.use('/api/clubs/:clubId/members', memberRoutes);
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error'
+  });
 });
 
-// Feature routes
-app.use("/api/clubs", clubRoutes);
-app.use("/api/members", memberRoutes);
-app.use("/api/events", eventRoutes);
+const PORT = process.env.PORT || 3001;
+const MONGO_URI = process.env.MONGO_URI;
 
-// MongoDB Connection
-const DB_USER = process.env.DB_USER;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const MONGO_CLUSTER_URL = process.env.MONGO_CLUSTER_URL;
-const mongoUri = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${MONGO_CLUSTER_URL}`;
-
-const PORT = process.env.PORT || 3000;
-
-mongoose.connect(mongoUri)
-    .then(() => {
-        console.log("✅ MongoDB connected");
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on http://localhost:${PORT}`);
-        });
-    })
-    .catch((err) => {
-        console.log("❌ MongoDB connection failed:", err.message);
-        process.exit(1);
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log('✅ MongoDB connected successfully');
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB connection failed:', err.message);
+    process.exit(1);
+  });

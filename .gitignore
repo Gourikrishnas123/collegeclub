@@ -1,0 +1,17 @@
+# dependencies
+node_modules
+**/node_modules
+
+# environment variables
+.env
+**/.env
+
+# uploads
+uploads
+**/uploads/*
+!**/uploads/.gitkeep
+
+# build logs & dist
+dist
+**/dist
+*.log
