@@ -10,7 +10,6 @@ import AddTransactionForm from '../components/finance/AddTransactionForm';
 import SectionHead from '../components/common/SectionHead';
 import Button from '../components/common/Button';
 import { getFinanceSummaryApi, getTransactionsApi, createTransactionApi, deleteTransactionApi } from '../api/finance';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Finance = () => {
@@ -84,50 +83,15 @@ const Finance = () => {
           )}
         />
 
-        {/* Compact Budget Bar */}
+        {/* Compact Budget Utilization Bar */}
         <BudgetBar
           budgetTotal={summary?.budgetTotal || 0}
           budgetSpent={summary?.budgetSpent || 0}
         />
 
-        {/* Minimalist Spend by Category Bar Chart */}
-        <div style={{
-          border: '1px solid var(--line)',
-          backgroundColor: 'var(--panel)',
-          padding: '20px',
-          marginBottom: '28px'
-        }}>
-          <span style={{ fontSize: '10px', color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '16px' }}>
-            SPEND BREAKDOWN BY CATEGORY
-          </span>
-          {summary?.categoryBreakdown && summary.categoryBreakdown.some(c => c.amount > 0) ? (
-            <div style={{ width: '100%', height: 180 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={summary.categoryBreakdown} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="category" stroke="var(--fg-dim)" tick={{ fontSize: 10, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
-                  <YAxis stroke="var(--fg-dim)" tick={{ fontSize: 10, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--line-strong)', color: 'var(--fg)', fontFamily: 'var(--font-mono)', fontSize: '10px' }}
-                    formatter={(val) => [`$${Number(val).toLocaleString()}`, 'Spent']}
-                  />
-                  <Bar dataKey="amount" radius={[0, 0, 0, 0]}>
-                    {summary.categoryBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'var(--accent)' : '#444444'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--fg-dim)', fontSize: '11px' }}>
-              No expenses recorded yet to render breakdown.
-            </div>
-          )}
-        </div>
-
-        {/* Transactions Table for Admins */}
+        {/* Transactions Table */}
         {canEdit ? (
-          <div>
+          <div style={{ marginTop: '28px' }}>
             <SectionHead title="TRANSACTIONS" subtitle="CREDITS & DEBITS RECORDED" />
             <TransactionTable
               transactions={transactions}
@@ -162,7 +126,7 @@ const Finance = () => {
           </div>
         ) : (
           <div style={{ padding: '16px', border: '1px solid var(--line)', backgroundColor: 'var(--panel)', color: 'var(--fg-dim)', fontSize: '11px' }}>
-            ℹ️ Line-item transactions are visible to Club Admins. Members can view category breakdown above.
+            ℹ️ Line-item transactions are visible to Club Admins. Members can view budget summaries above.
           </div>
         )}
 
