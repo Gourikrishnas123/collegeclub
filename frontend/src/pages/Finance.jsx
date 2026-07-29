@@ -22,7 +22,6 @@ const Finance = () => {
   const [transactions, setTransactions] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
   const [showAddModal, setShowAddModal] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   const canEdit = isSuperAdmin || isClubAdmin;
 
@@ -35,7 +34,6 @@ const Finance = () => {
 
   const loadFinanceData = async (targetClubId, pageNum = 1) => {
     try {
-      setLoading(true);
       const sumData = await getFinanceSummaryApi(targetClubId);
       setSummary(sumData);
 
@@ -49,8 +47,6 @@ const Finance = () => {
       }
     } catch (err) {
       console.error('Error loading finance data:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -74,55 +70,57 @@ const Finance = () => {
       <Topbar />
       <main style={{
         marginLeft: 'var(--sidebar-width)',
-        padding: '32px',
+        padding: '36px 40px',
         minHeight: 'calc(100vh - var(--topbar-height))',
         backgroundColor: 'var(--bg)'
       }}>
         <SectionHead
-          title="FINANCE & BUDGET MANAGEMENT"
-          subtitle={`FINANCIAL TRANSACTIONS AND SPEND BREAKDOWN FOR ${currentClub?.name || 'CLUB'}`}
+          title="FINANCE"
+          subtitle={`BUDGET & TRANSACTIONS FOR ${currentClub?.name || 'CLUB'}`}
           action={canEdit && (
             <Button variant="primary" onClick={() => setShowAddModal(true)}>
-              <Plus size={14} /> ADD TRANSACTION
+              <Plus size={13} /> RECORD TRANSACTION
             </Button>
           )}
         />
 
-        {/* Budget Bar */}
+        {/* Compact Budget Bar */}
         <BudgetBar
           budgetTotal={summary?.budgetTotal || 0}
           budgetSpent={summary?.budgetSpent || 0}
         />
 
-        {/* Spend by Category Recharts Bar Chart */}
+        {/* Minimalist Spend by Category Bar Chart */}
         <div style={{
-          border: '2px solid var(--line-strong)',
+          border: '1px solid var(--line)',
           backgroundColor: 'var(--panel)',
-          padding: '24px',
-          marginBottom: '32px'
+          padding: '20px',
+          marginBottom: '28px'
         }}>
-          <h3 style={{ fontSize: '15px', marginBottom: '20px' }}>SPEND BREAKDOWN BY CATEGORY</h3>
+          <span style={{ fontSize: '10px', color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '16px' }}>
+            SPEND BREAKDOWN BY CATEGORY
+          </span>
           {summary?.categoryBreakdown && summary.categoryBreakdown.some(c => c.amount > 0) ? (
-            <div style={{ width: '100%', height: 260 }}>
+            <div style={{ width: '100%', height: 180 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={summary.categoryBreakdown} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
-                  <XAxis dataKey="category" stroke="var(--fg-dim)" tick={{ fontSize: 11, fontFamily: 'var(--font-mono)' }} />
-                  <YAxis stroke="var(--fg-dim)" tick={{ fontSize: 11, fontFamily: 'var(--font-mono)' }} />
+                <BarChart data={summary.categoryBreakdown} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="category" stroke="var(--fg-dim)" tick={{ fontSize: 10, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="var(--fg-dim)" tick={{ fontSize: 10, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--line-strong)', color: 'var(--fg)', fontFamily: 'var(--font-mono)' }}
+                    contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--line-strong)', color: 'var(--fg)', fontFamily: 'var(--font-mono)', fontSize: '10px' }}
                     formatter={(val) => [`$${Number(val).toLocaleString()}`, 'Spent']}
                   />
                   <Bar dataKey="amount" radius={[0, 0, 0, 0]}>
                     {summary.categoryBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'var(--accent)' : 'var(--fg)'} />
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'var(--accent)' : '#444444'} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--fg-dim)' }}>
-              No expenses recorded yet to render chart.
+            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--fg-dim)', fontSize: '11px' }}>
+              No expenses recorded yet to render breakdown.
             </div>
           )}
         </div>
@@ -130,26 +128,26 @@ const Finance = () => {
         {/* Transactions Table for Admins */}
         {canEdit ? (
           <div>
-            <SectionHead title="TRANSACTION HISTORY" subtitle="ALL CREDITS AND DEBITS RECORDED" />
+            <SectionHead title="TRANSACTIONS" subtitle="CREDITS & DEBITS RECORDED" />
             <TransactionTable
               transactions={transactions}
               onDelete={handleDeleteTransaction}
               canEdit={canEdit}
             />
 
-            {/* Pagination Controls */}
+            {/* Minimal Pagination */}
             {pagination.totalPages > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
                 <Button
                   variant="outline"
                   size="sm"
                   disabled={pagination.page <= 1}
                   onClick={() => loadFinanceData(clubId, pagination.page - 1)}
                 >
-                  <ChevronLeft size={12} /> PREV
+                  <ChevronLeft size={11} /> PREV
                 </Button>
-                <span style={{ fontSize: '11px', color: 'var(--fg-dim)' }}>
-                  PAGE {pagination.page} OF {pagination.totalPages}
+                <span style={{ fontSize: '10px', color: 'var(--fg-dim)' }}>
+                  PAGE {pagination.page} / {pagination.totalPages}
                 </span>
                 <Button
                   variant="outline"
@@ -157,14 +155,14 @@ const Finance = () => {
                   disabled={pagination.page >= pagination.totalPages}
                   onClick={() => loadFinanceData(clubId, pagination.page + 1)}
                 >
-                  NEXT <ChevronRight size={12} />
+                  NEXT <ChevronRight size={11} />
                 </Button>
               </div>
             )}
           </div>
         ) : (
-          <div style={{ padding: '20px', border: '1px solid var(--line)', backgroundColor: 'var(--panel)', color: 'var(--fg-dim)' }}>
-            ℹ️ Detailed line-item transactions are restricted to Club Admins. Members can view budget summaries and category metrics above.
+          <div style={{ padding: '16px', border: '1px solid var(--line)', backgroundColor: 'var(--panel)', color: 'var(--fg-dim)', fontSize: '11px' }}>
+            ℹ️ Line-item transactions are visible to Club Admins. Members can view category breakdown above.
           </div>
         )}
 
