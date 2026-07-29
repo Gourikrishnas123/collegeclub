@@ -1,16 +1,16 @@
 :root {
-  --bg: #0A0A0A;
+  --bg: #080808;
   --panel: #111111;
-  --line: #2A2A28;
-  --line-strong: #F2F1EA;
-  --fg: #F2F1EA;
-  --fg-dim: #8A8A82;
+  --line: #222222;
+  --line-strong: #E5E5E5;
+  --fg: #F5F5F5;
+  --fg-dim: #888888;
   --accent: #D4FF3D;
-  --danger: #FF5C4D;
+  --danger: #FF453A;
 
   --font-heading: 'Space Grotesk', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --sidebar-width: 230px;
-  --topbar-height: 60px;
+  --sidebar-width: 220px;
+  --topbar-height: 56px;
 }

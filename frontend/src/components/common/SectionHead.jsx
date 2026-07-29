@@ -6,14 +6,14 @@ const SectionHead = ({ title, subtitle, action }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingBottom: '16px',
+      paddingBottom: '14px',
       marginBottom: '20px',
-      borderBottom: '2px solid var(--line-strong)'
+      borderBottom: '1px solid var(--line)'
     }}>
       <div>
-        <h2 style={{ fontSize: '20px', letterSpacing: '-0.01em' }}>{title}</h2>
+        <h2 style={{ fontSize: '18px', letterSpacing: '-0.01em' }}>{title}</h2>
         {subtitle && (
-          <p style={{ fontSize: '11px', color: 'var(--fg-dim)', marginTop: '4px', textTransform: 'uppercase' }}>
+          <p style={{ fontSize: '10px', color: 'var(--fg-dim)', marginTop: '2px', textTransform: 'uppercase' }}>
             {subtitle}
           </p>
         )}

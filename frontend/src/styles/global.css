@@ -10,7 +10,7 @@ body {
   background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -31,37 +31,27 @@ a {
 
 button, input, select, textarea {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-/* Scrollbar customization - Brutalist */
+/* Minimal Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg);
-  border-left: 1px solid var(--line);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 0px;
+  background: #333333;
 }
 
-/* Border utilities */
-.border-strong {
-  border: 2px solid var(--line-strong);
-}
-
-.border-line {
-  border: 1px solid var(--line);
-}
-
-/* Modal backdrop & panel */
+/* Modal overlay & container */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,14 +61,13 @@ button, input, select, textarea {
 
 .modal-content {
   background: var(--panel);
-  border: 2px solid var(--line-strong);
-  padding: 24px;
-  max-width: 540px;
+  border: 1px solid var(--line-strong);
+  padding: 28px;
+  max-width: 520px;
   width: 100%;
-  border-radius: 0px;
 }
 
-/* Reusable form styles */
+/* Form Controls */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -88,9 +77,9 @@ button, input, select, textarea {
 
 .form-label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--fg-dim);
 }
 
@@ -99,11 +88,10 @@ button, input, select, textarea {
   color: var(--fg);
   border: 1px solid var(--line);
   padding: 10px 12px;
-  border-radius: 0px;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.15s ease;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
-  border-color: var(--line-strong);
+  border-color: var(--fg);
 }
