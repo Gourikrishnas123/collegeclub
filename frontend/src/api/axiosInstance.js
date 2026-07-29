@@ -19,7 +19,7 @@ export const getBackendHost = () => {
 
 const api = axios.create({
   baseURL: getApiBaseUrl(),
-  withCredentials: true // send cookies automatically
+  withCredentials: true
 });
 
 // Request interceptor: attach token from localStorage if present
@@ -34,15 +34,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: auto-redirect on 401 only if not already logging in
+// Response interceptor: clear token on 401 without hard window.location reloads
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
     }
     return Promise.reject(error);
   }

@@ -10,14 +10,22 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
       const data = await getMeApi();
       if (data && data.user) {
         setUser(data.user);
       } else {
         setUser(null);
+        localStorage.removeItem('token');
       }
     } catch (err) {
       setUser(null);
+      localStorage.removeItem('token');
     } finally {
       setLoading(false);
     }
@@ -29,6 +37,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const data = await apiLogin(credentials);
+    if (data && data.token) {
+      localStorage.setItem('token', data.token);
+    }
     if (data && data.user) {
       setUser(data.user);
     }
@@ -41,8 +52,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
+      localStorage.removeItem('token');
       setUser(null);
-      window.location.href = '/login';
     }
   };
 
