@@ -2,8 +2,11 @@ import React from 'react';
 import Tag from '../common/Tag';
 import Button from '../common/Button';
 import { Trash2, Image as ImageIcon } from 'lucide-react';
+import { getBackendHost } from '../../api/axiosInstance';
 
 const GalleryCard = ({ event, onDelete, onImageClick, canEdit = false }) => {
+  const backendHost = getBackendHost();
+
   return (
     <div style={{
       border: '2px solid var(--line-strong)',
@@ -58,7 +61,7 @@ const GalleryCard = ({ event, onDelete, onImageClick, canEdit = false }) => {
             }}
           >
             <img
-              src={img.url.startsWith('http') ? img.url : `http://localhost:3001${img.url}`}
+              src={img.url.startsWith('http') ? img.url : `${backendHost}${img.url}`}
               alt={img.caption || event.title}
               style={{
                 width: '100%',

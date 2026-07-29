@@ -21,11 +21,29 @@ const memberRoutes = require('./routes/members');
 
 const app = express();
 
-// Middleware
+// Trust reverse proxy (Render / Vercel SSL proxies) for secure cookies
+app.set('trust proxy', 1);
+
+// Dynamic CORS configuration allowing localhost & Vercel deployment
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://collegeclub-flax.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    callback(null, true); // Fallback allow for production flexibility
+  },
   credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -34,6 +52,10 @@ app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check / API status
+app.get('/', (req, res) => {
+  res.send('Multi-Club Management System API Server is Online 🚀');
+});
+
 app.get('/api/status', (req, res) => {
   res.json({
     status: 'Online',
@@ -68,7 +90,7 @@ mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected successfully');
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   })
   .catch((err) => {

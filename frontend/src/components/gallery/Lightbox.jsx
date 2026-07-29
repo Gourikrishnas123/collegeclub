@@ -1,10 +1,12 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { getBackendHost } from '../../api/axiosInstance';
 
 const Lightbox = ({ url, caption, title, onClose }) => {
   if (!url) return null;
 
-  const fullUrl = url.startsWith('http') ? url : `http://localhost:3001${url}`;
+  const backendHost = getBackendHost();
+  const fullUrl = url.startsWith('http') ? url : `${backendHost}${url}`;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
