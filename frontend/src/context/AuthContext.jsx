@@ -50,8 +50,16 @@ export const AuthProvider = ({ children }) => {
   const isClubAdmin = user?.role === 'club_admin';
   const isMember = user?.role === 'member';
 
-  // extract actual clubId string whether populated object or string ID
-  const ownClubId = user?.clubId ? (typeof user.clubId === 'object' ? user.clubId._id : user.clubId) : null;
+  // Extract actual string ID whether user.clubId is a populated object or string ID
+  const getClubIdStr = (val) => {
+    if (!val) return null;
+    if (typeof val === 'object') {
+      return val._id ? val._id.toString() : val.toString();
+    }
+    return val.toString();
+  };
+
+  const ownClubId = getClubIdStr(user?.clubId);
 
   return (
     <AuthContext.Provider value={{

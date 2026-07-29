@@ -6,14 +6,24 @@ const User = require('../models/User');
 const Club = require('../models/Club');
 const { authenticateToken } = require('../middleware/auth');
 
+// Helper to safely extract string ID from ObjectId or object
+const extractIdString = (val) => {
+  if (!val) return null;
+  if (typeof val === 'object') {
+    return val._id ? val._id.toString() : val.toString();
+  }
+  return val.toString();
+};
+
 // Helper to generate access token
 const generateToken = (user) => {
+  const clubIdStr = extractIdString(user.clubId);
   return jwt.sign(
     { 
-      id: user._id, 
+      id: user._id.toString(), 
       email: user.email, 
       role: user.role, 
-      clubId: user.clubId 
+      clubId: clubIdStr 
     },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
@@ -46,7 +56,6 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Default to 'member' unless explicitly set and valid
     let assignedRole = 'member';
     if (role && ['super_admin', 'club_admin', 'member'].includes(role)) {
       assignedRole = role;

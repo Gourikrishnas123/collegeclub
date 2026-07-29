@@ -39,6 +39,15 @@ const authorize = (allowedRoles = []) => {
   };
 };
 
+// Helper to safely extract string ID from ObjectId or object
+const extractIdString = (val) => {
+  if (!val) return null;
+  if (typeof val === 'object') {
+    return val._id ? val._id.toString() : val.toString();
+  }
+  return val.toString();
+};
+
 // Verify user has access to target clubId (super_admin can access any, club_admin/member only their own)
 const checkClubAccess = (req, res, next) => {
   if (!req.user) {
@@ -56,7 +65,10 @@ const checkClubAccess = (req, res, next) => {
     return res.status(400).json({ message: 'Club ID parameter missing.' });
   }
 
-  if (!req.user.clubId || req.user.clubId.toString() !== targetClubId.toString()) {
+  const userClubIdStr = extractIdString(req.user.clubId);
+  const targetClubIdStr = targetClubId.toString();
+
+  if (!userClubIdStr || userClubIdStr !== targetClubIdStr) {
     return res.status(403).json({ message: 'Access denied: You can only access your own club data.' });
   }
 

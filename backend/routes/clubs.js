@@ -13,10 +13,11 @@ router.get('/', authenticateToken, async (req, res) => {
       const clubs = await Club.find().sort({ name: 1 });
       return res.json(clubs);
     } else {
-      if (!req.user.clubId) {
+      const userClubId = req.user.clubId ? (typeof req.user.clubId === 'object' ? req.user.clubId._id : req.user.clubId) : null;
+      if (!userClubId) {
         return res.json([]);
       }
-      const club = await Club.findById(req.user.clubId);
+      const club = await Club.findById(userClubId);
       return res.json(club ? [club] : []);
     }
   } catch (err) {
@@ -123,7 +124,8 @@ router.patch('/:id', authenticateToken, async (req, res) => {
   try {
     const clubId = req.params.id;
 
-    if (req.user.role !== 'super_admin' && req.user.clubId?.toString() !== clubId) {
+    const userClubId = req.user.clubId ? (typeof req.user.clubId === 'object' ? req.user.clubId._id?.toString() : req.user.clubId.toString()) : null;
+    if (req.user.role !== 'super_admin' && userClubId !== clubId) {
       return res.status(403).json({ message: 'Access denied: You can only edit your own club.' });
     }
 

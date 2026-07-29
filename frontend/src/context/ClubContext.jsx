@@ -20,18 +20,17 @@ export const ClubProvider = ({ children }) => {
 
       if (data && data.length > 0) {
         if (isSuperAdmin) {
-          // If super admin hasn't picked a club yet, pick first or stay on active
-          if (!currentClubId || !data.find(c => c._id === currentClubId)) {
-            setCurrentClubId(data[0]._id);
+          if (!currentClubId || !data.find(c => c._id?.toString() === currentClubId?.toString())) {
+            setCurrentClubId(data[0]._id.toString());
             setCurrentClub(data[0]);
           } else {
-            setCurrentClub(data.find(c => c._id === currentClubId));
+            setCurrentClub(data.find(c => c._id?.toString() === currentClubId?.toString()));
           }
         } else {
           // Member / club_admin locked to own club
-          const myClub = data.find(c => c._id === ownClubId) || data[0];
+          const myClub = data.find(c => c._id?.toString() === ownClubId?.toString()) || data[0];
           if (myClub) {
-            setCurrentClubId(myClub._id);
+            setCurrentClubId(myClub._id.toString());
             setCurrentClub(myClub);
           }
         }
@@ -48,9 +47,10 @@ export const ClubProvider = ({ children }) => {
   }, [user, ownClubId]);
 
   const selectClub = (clubId) => {
-    const club = clubs.find(c => c._id === clubId);
+    if (!clubId) return;
+    const club = clubs.find(c => c._id?.toString() === clubId.toString());
     if (club) {
-      setCurrentClubId(club._id);
+      setCurrentClubId(club._id.toString());
       setCurrentClub(club);
     }
   };
@@ -60,7 +60,7 @@ export const ClubProvider = ({ children }) => {
       const data = await getClubsApi();
       setClubs(data || []);
       const targetId = clubId || currentClubId;
-      const match = data.find(c => c._id === targetId);
+      const match = data.find(c => c._id?.toString() === targetId?.toString());
       if (match) {
         setCurrentClub(match);
       }
