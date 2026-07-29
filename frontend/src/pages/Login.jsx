@@ -3,15 +3,50 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/common/Button';
 import Tag from '../components/common/Tag';
-import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import { ShieldAlert, UserCheck, Users, Lock, Mail, ArrowRight } from 'lucide-react';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [activeRole, setActiveRole] = useState('super_admin'); // 'super_admin' | 'club_admin' | 'member'
+  const [email, setEmail] = useState('admin@college.edu');
+  const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const rolePresets = {
+    super_admin: {
+      title: 'SUPER ADMIN',
+      subtitle: 'MANAGES ALL CLUBS ACROSS CAMPUS',
+      email: 'admin@college.edu',
+      description: 'Full system control. View all-clubs overview, create or deactivate clubs, and drill down into any dashboard.',
+      badgeVariant: 'filled-urgent',
+      icon: ShieldAlert
+    },
+    club_admin: {
+      title: 'CLUB ADMIN',
+      subtitle: 'MANAGES ASSIGNED CLUB',
+      email: 'cs_admin@college.edu',
+      description: 'Full CRUD on your club\'s financial transactions, noticeboard announcements, gallery albums, and members.',
+      badgeVariant: 'accent',
+      icon: UserCheck
+    },
+    member: {
+      title: 'STUDENT MEMBER',
+      subtitle: 'READ-ONLY CLUB ACCESS',
+      email: 'cs_member@college.edu',
+      description: 'Student access. View club announcements, finance summaries, member directory, and event photo gallery.',
+      badgeVariant: 'default',
+      icon: Users
+    }
+  };
+
+  const handleRoleSelect = (roleKey) => {
+    setActiveRole(roleKey);
+    setEmail(rolePresets[roleKey].email);
+    setPassword('password123');
+    setError('');
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,10 +73,7 @@ const Login = () => {
     }
   };
 
-  const handleQuickLogin = (demoEmail) => {
-    setEmail(demoEmail);
-    setPassword('password123');
-  };
+  const currentPreset = rolePresets[activeRole];
 
   return (
     <div style={{
@@ -54,24 +86,85 @@ const Login = () => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '440px',
+        maxWidth: '520px',
         border: '2px solid var(--line-strong)',
         backgroundColor: 'var(--panel)',
-        padding: '32px'
+        padding: '36px'
       }}>
-        {/* Brand Header */}
+        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '10px',
-            marginBottom: '8px'
+            marginBottom: '6px'
           }}>
-            <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--accent)' }} />
-            <h1 style={{ fontSize: '24px', letterSpacing: '-0.02em' }}>CLUB CORE</h1>
+            <div style={{ width: '14px', height: '14px', backgroundColor: 'var(--accent)' }} />
+            <h1 style={{ fontSize: '22px', letterSpacing: '-0.02em' }}>CLUB CORE</h1>
           </div>
           <p style={{ fontSize: '11px', color: 'var(--fg-dim)', textTransform: 'uppercase' }}>
             Multi-Club OS Login Portal
+          </p>
+        </div>
+
+        {/* 3 Dedicated Role Selection Buttons */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ fontSize: '10px', color: 'var(--fg-dim)', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '700' }}>
+            SELECT LOGIN MODE:
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            {Object.keys(rolePresets).map((rKey) => {
+              const r = rolePresets[rKey];
+              const isSelected = activeRole === rKey;
+              const Icon = r.icon;
+              return (
+                <button
+                  key={rKey}
+                  type="button"
+                  onClick={() => handleRoleSelect(rKey)}
+                  style={{
+                    padding: '12px 6px',
+                    border: isSelected ? '2px solid var(--accent)' : '1px solid var(--line)',
+                    backgroundColor: isSelected ? 'rgba(212, 255, 61, 0.08)' : 'var(--bg)',
+                    color: isSelected ? 'var(--accent)' : 'var(--fg-dim)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Icon size={16} />
+                  <span>{r.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Role Info Box */}
+        <div style={{
+          padding: '14px 16px',
+          border: '1px solid var(--line)',
+          backgroundColor: 'var(--bg)',
+          marginBottom: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--fg)' }}>
+              {currentPreset.title} — MODE
+            </span>
+            <Tag variant={currentPreset.badgeVariant}>{activeRole}</Tag>
+          </div>
+          <p style={{ fontSize: '11px', color: 'var(--fg-dim)', lineHeight: '1.4' }}>
+            {currentPreset.description}
           </p>
         </div>
 
@@ -88,6 +181,7 @@ const Login = () => {
           </div>
         )}
 
+        {/* Credentials Form */}
         <form onSubmit={handleLogin}>
           <div className="form-group">
             <label className="form-label">Email Address</label>
@@ -98,7 +192,7 @@ const Login = () => {
                 style={{ width: '100%', paddingLeft: '36px' }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@college.edu"
+                placeholder="user@college.edu"
                 required
               />
               <Mail size={14} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--fg-dim)' }} />
@@ -122,46 +216,44 @@ const Login = () => {
           </div>
 
           <Button type="submit" variant="primary" size="lg" disabled={loading} style={{ width: '100%' }}>
-            {loading ? 'AUTHENTICATING...' : 'ACCESS DASHBOARD'}
+            {loading ? 'AUTHENTICATING...' : `LOG IN AS ${currentPreset.title}`} <ArrowRight size={14} />
           </Button>
         </form>
 
-        {/* Demo Quick Logins */}
-        <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--line)' }}>
-          <div style={{ fontSize: '10px', color: 'var(--fg-dim)', textTransform: 'uppercase', marginBottom: '12px', textAlign: 'center' }}>
-            ⚡ QUICK DEMO ACCOUNTS (PASSWORD: password123)
+        {/* Quick Club Admin Presets if Club Admin selected */}
+        {activeRole === 'club_admin' && (
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--line)' }}>
+            <div style={{ fontSize: '10px', color: 'var(--fg-dim)', textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
+              SWITCH DEMO CLUB ADMIN ACCOUNT:
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+              <button
+                type="button"
+                className="form-input"
+                style={{ fontSize: '9px', padding: '6px', textAlign: 'center', cursor: 'pointer' }}
+                onClick={() => setEmail('cs_admin@college.edu')}
+              >
+                [CS] COMPUTER SCIENCE
+              </button>
+              <button
+                type="button"
+                className="form-input"
+                style={{ fontSize: '9px', padding: '6px', textAlign: 'center', cursor: 'pointer' }}
+                onClick={() => setEmail('ro_admin@college.edu')}
+              >
+                [RO] ROBOTICS
+              </button>
+              <button
+                type="button"
+                className="form-input"
+                style={{ fontSize: '9px', padding: '6px', textAlign: 'center', cursor: 'pointer' }}
+                onClick={() => setEmail('me_admin@college.edu')}
+              >
+                [ME] MECHANICAL
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickLogin('admin@college.edu')}
-            >
-              SUPER ADMIN
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickLogin('cs_admin@college.edu')}
-            >
-              CS CLUB ADMIN
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickLogin('cs_member@college.edu')}
-            >
-              CS MEMBER
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickLogin('ro_admin@college.edu')}
-            >
-              ROBOTICS ADMIN
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
